@@ -1,0 +1,154 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  release-drafter:
+    if: github.event_name == 'push'
+    name: Draft Release Notes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Draft Release
+        uses: release-drafter/release-drafter@72967cdc98ddd3160f1fc3dff619de365e137dd0 # v7.9.0
+        with:
+          publish: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-to-testpypi:
+    # Temporarily disabled: pypa/gh-action-pypi-publish release/v1 now defaults
+    # to Trusted Publishing (OIDC) and ignores the deprecated `password` input,
+    # so every push fails with "OpenID Connect token retrieval failed" because
+    # this job has no `id-token: write` permission. Re-enable once TestPyPI
+    # Trusted Publishing is wired (mirrors the PyPI setup below).
+    if: false
+    name: Build and Publish to TestPyPI
+    runs-on: ubuntu-latest
+    # OIDC for Trusted Publishing (now set up on TestPyPI too); the previous
+    # token + password fields are dropped because the pypa action prefers TP
+    # whenever it can fetch an OIDC token.
+    permissions:
+      id-token: write
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: false
+      - name: Build package (pure Python)
+        run: uv build --sdist --wheel
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        with:
+          repository_url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+  build_wheels:
+    if: github.event_name == 'release' && github.event.action == 'published'
+    name: Build wheels on ${{ matrix.os }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            arch: x86_64
+            runs-on: ubuntu-latest
+          - os: linux
+            arch: aarch64
+            runs-on: ubuntu-24.04-arm
+          - os: windows
+            arch: AMD64  # cibuildwheel 3.x renamed amd64 -> AMD64 on Windows
+            runs-on: windows-latest
+          - os: macos
+            arch: x86_64
+            runs-on: macos-15-intel
+          - os: macos
+            arch: arm64
+            runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+        with:
+          persist-credentials: false
+      - name: Build wheels
+        uses: pypa/cibuildwheel@e090b81e30c4d855ea63bf4b6e59204c09a101ae # v4.2.1
+        env:
+          INVOICE2DATA_COMPILE_MYPYC: "1"
+          CIBW_ARCHS: ${{ matrix.arch }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}
+          path: ./wheelhouse/*.whl
+
+  build_sdist:
+    if: github.event_name == 'release' && github.event.action == 'published'
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: false
+      - name: Build sdist
+        run: uv build --sdist --out-dir dist
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: cibw-sdist
+          path: dist/*.tar.gz
+
+  publish_release:
+    if: github.event_name == 'release' && github.event.action == 'published'
+    name: Sign and Publish to PyPI
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/invoice2data
+    permissions:
+      id-token: write
+      contents: write
+      attestations: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Generate build provenance attestations
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
+        with:
+          subject-path: "dist/*.whl, dist/*.tar.gz"
+      - name: Sign the dists with Sigstore + attach to GitHub Release
+        # `release-signing-artifacts: true` (default in v3) uploads both the
+        # signed inputs (.whl, .tar.gz) and their .sigstore.json sidecars to
+        # the GitHub Release that triggered the run. A previous `gh release
+        # upload ./dist/*` step that ran after this one was therefore
+        # redundant and failed with "asset under the same name already exists"
+        # -- removed.
+        uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # v3.5.0
+        with:
+          inputs: >-
+            ./dist/*.tar.gz
+            ./dist/*.whl
+      - name: Remove sigstore files before publishing to PyPI
+        run: rm -f dist/*.sigstore dist/*.sigstore.json
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
