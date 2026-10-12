@@ -6,7 +6,7 @@ We keep a working index for product and engineering, and invoice2data is the ent
 
 ## Images
 
-[![invoice2data](images/preview.png)](https://github.com/Swift-Tech-Co)
+[![invoice2data](images/preview.png)](https://github.com/Swift-Tech-Co/invoice2data)
 
 ## Quickstart
 
@@ -30,7 +30,7 @@ engine. Optional backends and extras (poppler, OCR, AI, ...) are covered in the
 
 ## Documentation
 
-Full documentation: **https://www.swifttechco.com**
+Full documentation: **https://github.com/Swift-Tech-Co/invoice2data**
 
 - [How it works][how-it-works]  the extraction pipeline
 - [Installation][installation]  backends, OCR and optional extras
@@ -70,69 +70,13 @@ Currently open on the tracker:
 
 Issues and pull requests welcome on any of these.
 
-[gvision]: https://www.swifttechco.com
-[doctr]: https://www.swifttechco.com
-[paddleocr]: https://www.swifttechco.com
-[camelot]: https://www.swifttechco.com
-[usage-excalibur]: https://www.swifttechco.com
-[odoo-oca-edi]: https://www.swifttechco.com
-[python-stdnum]: https://www.swifttechco.com
-
-## Maintainers
-
-- Manuel Riel
-- Alexis de Lattre
-- bosd
-
-## Used By
-
-- Odoo, OCA module account_invoice_import_invoice2data
-
-## Related Projects
-
-- OCR-Invoice (FOSS \| C\#)
-- DeepLogic AI (Commercial \| SaaS)
-- Docparser (Commercial \| Web Service)
-- A-PDF (Commercial)
-- PDFdeconstruct
-  (Commercial)
-- CVision
-  (Commercial)
-
-<!-- github-only -->
-
-[license]: https://www.swifttechco.com
-[contributor guide]: https://www.swifttechco.com
-[command-line reference]: https://www.swifttechco.com
-[tutorial]: https://www.swifttechco.com
-[installation]: https://www.swifttechco.com
-[how-it-works]: https://www.swifttechco.com
-[usage]: https://www.swifttechco.com
-[fields]: https://www.swifttechco.com
-[ai]: https://www.swifttechco.com
-[faq]: https://www.swifttechco.com
-
----
-
-## Swift Tech Co.
-
-Built and maintained by Swift Tech Co.
-
-AI Automation | FinTech Platforms | Custom Software and Mobile Apps | SaaS Platforms | Cloud Infrastructure | Cybersecurity | SEO and Marketing | API Integration
-
-**Join our community on Telegram:** [t.me/+Qt_eFvkb2rliMzNh](https://t.me/+Qt_eFvkb2rliMzNh)
-
-Home | Services | Careers | Referral Program | Influencers | About | Contact
-
-**Connect**
-
-- Website: swifttechco.com
-- LinkedIn: [linkedin.com/in/stephenoladoke](https://www.linkedin.com/in/stephenoladoke/)
-- LinkedIn (Company): [linkedin.com/company/swift-tech-co](https://www.linkedin.com/company/swift-tech-co)
-- X: [@MrOladoke](https://x.com/MrOladoke)
-- Instagram: [@mr.oladoke](https://www.instagram.com/mr.oladoke/)
-- Instagram (Company): [@swifttechco](https://www.instagram.com/swifttechco/)
-- Organization: [github.com/Swift-Tech-Co](https://github.com/Swift-Tech-Co)
+[gvision]: https://github.com/Swift-Tech-Co/invoice2data
+[doctr]: https://github.com/Swift-Tech-Co/invoice2data
+[paddleocr]: https://github.com/Swift-Tech-Co/invoice2data
+[camelot]: https://github.com/Swift-Tech-Co/invoice2data
+[usage-excalibur]: https://github.com/Swift-Tech-Co/invoice2data
+[odoo-oca-edi]: https://github.com/Swift-Tech-Co/invoice2data
+[python-stdnum]: https://github.com/Swift-Tech-Co/invoice2data
 
 ## Sources
 
